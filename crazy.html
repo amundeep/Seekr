@@ -1,0 +1,318 @@
+<style type="text/css">.search-input{border:1px solid
+	#CCC;border-radius:1px;display:block;font-size:16px;
+	height:40px;margin:50px;padding-left:10px;padding-right:5px;z-index:2;position:absolute;top:0;right:0;left:0;}
+
+	.logo{font-family:"Helvetica
+	Neue",Helvetica,Arial,sans-serif;display:block;color:white;font-size:20px;height:40px;text-align:center;margin:10px;padding-left:
+	10px;padding-right:5px;z-index:3;position:absolute;top:0;right:0;left:0;}
+	body{background-image:url(http://referralfeed.com/images/bg/005.jpg);background-repeat:no-repeat;background-size:100%;background-position:center
+		top;
+		border-bottom:solid 1px #999999;min-height:700px;}</style>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+		<title>jobsearch demo</title>
+		<script src="http://maps.google.com/maps/api/js?sensor=false"
+		type="text/javascript"></script>
+		<script type="text/javascript"
+		src="//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+		<script type="text/javascript">
+//<![CDATA[
+var map;
+var markers = [];
+var infoWindow;
+var locationSelect;
+
+var latitude = '37.3768791';
+var longitude = '-121.921867';
+
+function findlocation(locationsearch) {
+	$.getJSON('http://maps.googleapis.com/maps/api/geocode/json?address='+locationsearch+'&sensor=false',
+		function(geolocation) {
+			console.log(geolocation);
+
+			latitude = geolocation.results[0].geometry.location.lat;
+			longitude = geolocation.results[0].geometry.location.lng;
+			console.log(latitude);
+		});
+}
+function load() {
+	navigator.geolocation.getCurrentPosition(show_map);
+	map = new google.maps.Map(document.getElementById("map"), {
+		center: new google.maps.LatLng(latitude, longitude),
+		zoom: 14,
+		mapTypeId: 'roadmap',
+		mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU}
+	});
+	infoWindow = new google.maps.InfoWindow();
+
+	locationSelect = document.getElementById("locationSelect");
+	locationSelect.onchange = function() {
+		var markerNum = locationSelect.options[locationSelect.selectedIndex].value;
+		if (markerNum != "none"){
+			google.maps.event.trigger(markers[markerNum], 'click');
+		}
+	};
+
+	$('#searchInput').keypress(function (e) {
+//console.log('hi');
+if (e.keyCode == 13) {
+	searchLocations();
+//alert('hi');
+//console.log('hi');
+}
+});
+	$('#locationInput').keypress(function (e) {
+		if (e.keyCode == 13) {
+
+			findlocation(document.getElementById("locationInput").value);
+			if(document.getElementById("searchInput").value){
+				searchLocations();
+			}
+		}
+
+	});
+
+	$('#map').hide();
+
+}
+
+function searchLocations() {
+	findlocation(document.getElementById("locationInput").value);
+	$("#map").show(1, function () {
+		google.maps.event.trigger(map, "resize");
+//console.log('fuk');
+});
+//$('#map').googlemap().getMap().checkResize();
+var address = document.getElementById("searchInput").value;
+var geocoder = new google.maps.Geocoder();
+geocoder.geocode({address: address}, function(results, status) {
+	if (status == google.maps.GeocoderStatus.OK) {
+		searchLocationsNear(results[0].geometry.location);
+		console.log(results[0].geometry.location);
+	} else {
+		searchLocationsNear(results[0].geometry.location);
+	}
+});
+}
+
+function clearLocations() {
+	infoWindow.close();
+	for (var i = 0; i < markers.length; i++) {
+		markers[i].setMap(null);
+	}
+	markers.length = 0;
+
+	locationSelect.innerHTML = "";
+	var option = document.createElement("option");
+	option.value = "none";
+	option.innerHTML = "See all results:";
+	locationSelect.appendChild(option);
+}
+
+function searchLocationsNear(center) {
+	clearLocations();
+	var titleofJob = document.getElementById("searchInput").value;
+	var radius = document.getElementById('radiusSelect').value;
+	var searchUrl = 'phpsqlsearch_genxml.php?lat=' + latitude + '&lng=' +
+	longitude + '&radius=' + radius +'&title=' + titleofJob;
+	downloadUrl(searchUrl, function(data) {
+		var xml = parseXml(data);
+		var markerNodes = xml.documentElement.getElementsByTagName("marker");
+		var bounds = new google.maps.LatLngBounds();
+
+		for (var i = 0; i < 1; i++) {
+			var latlng = new google.maps.LatLng(
+				parseFloat(latitude),
+				parseFloat(longitude));
+			bounds.extend(latlng);
+		}
+
+
+		for (var i = 0; i < markerNodes.length; i++) {
+			var name = markerNodes[i].getAttribute("name");
+			var address = markerNodes[i].getAttribute("address");
+			var url = markerNodes[i].getAttribute("url");
+			var company = markerNodes[i].getAttribute("company");
+			var location = markerNodes[i].getAttribute("location");
+			var incomerange = markerNodes[i].getAttribute("IncomeRange");
+			var distance = parseFloat(markerNodes[i].getAttribute("distance"));
+			var latlng = new google.maps.LatLng(
+				parseFloat(markerNodes[i].getAttribute("lat")),
+				parseFloat(markerNodes[i].getAttribute("lng")));
+
+
+			createOption(name, distance, i);
+			createMarker(latlng, name, address,url,company,location,incomerange);
+			bounds.extend(latlng);
+		}
+		map.fitBounds(bounds);
+		locationSelect.style.visibility = "visible";
+		locationSelect.onchange = function() {
+			var markerNum = locationSelect.options[locationSelect.selectedIndex].value;
+			google.maps.event.trigger(markers[markerNum], 'click');
+		};
+	});
+}
+
+function createMarker(latlng, name, address,url,company,location,incomerange) {
+	var html = "<a href=\"link.php?url="+ url+"\"><b>" + name + "</b></a>";
+	if (incomerange){
+		html += " <br>Salary: "+incomerange+""
+	}
+	html += " <br>"+company+"";
+	if (address){
+		html +="<br/>" + address;
+	}
+	html +="<br>" +location;
+	var marker = new google.maps.Marker({
+		map: map,
+		position: latlng
+	});
+	google.maps.event.addListener(marker, 'click', function() {
+		infoWindow.setContent(html);
+		infoWindow.open(map, marker);
+	});
+	markers.push(marker);
+	console.log(html);
+	$('#locationSelect').hide();
+}
+
+function createOption(name, distance, num) {
+//var option = document.createElement("option");
+//option.value = num;
+//option.innerHTML = name + "(" + distance.toFixed(1) + ")";
+//locationSelect.appendChild(option);
+}
+
+function downloadUrl(url, callback) {
+	var request = window.ActiveXObject ?
+	new ActiveXObject('Microsoft.XMLHTTP') :
+	new XMLHttpRequest;
+
+	request.onreadystatechange = function() {
+		if (request.readyState == 4) {
+			request.onreadystatechange = doNothing;
+			callback(request.responseText, request.status);
+		}
+	};
+
+	request.open('GET', url, true);
+	request.send(null);
+}
+
+function parseXml(str) {
+	if (window.ActiveXObject) {
+		var doc = new ActiveXObject('Microsoft.XMLDOM');
+		doc.loadXML(str);
+		return doc;
+	} else if (window.DOMParser) {
+		return (new DOMParser).parseFromString(str, 'text/xml');
+	}
+}
+
+function doNothing() {}
+
+function show_map(position) {
+	latitude = position.coords.latitude;
+	console.log(latitude);
+	longitude = position.coords.longitude;
+	console.log(longitude);
+// let's show a map or do something interesting!
+}
+
+//]]>
+</script>
+<!--<script type="text/javascript">
+/* <![CDATA[ */
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-22436046-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+var ga = document.createElement('script'); ga.type =
+'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' :
+'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0];
+s.parentNode.insertBefore(ga, s);
+})();
+
+(function(b){(function(a){"__CF"in b&&"DJS"in
+b.__CF?b.__CF.DJS.push(a):"addEventListener"in
+b?b.addEventListener("load",a,!1):b.attachEvent("onload",a)})(function(){"FB"in
+b&&"Event"in FB&&"subscribe"in
+FB.Event&&(FB.Event.subscribe("edge.create",function(a){_gaq.push(["_trackSocial","facebook","like",a])}),FB.Event.subscribe("edge.remove",function(a){_gaq.push(["_trackSocial","facebook","unlike",a])}),FB.Event.subscribe("message.send",function(a){_gaq.push(["_trackSocial","facebook","send",a])}));"twttr"in
+b&&"events"in twttr&&"bind"in
+twttr.events&&twttr.events.bind("tweet",function(a){if(a){var
+b;if(a.target&&a.target.nodeName=="IFRAME")a:{if(a=a.target.src){a=a.split("#")[0].match(/[^?=&]+=([^&]*)?/g);b=0;for(var
+c;c=a[b];++b)if(c.indexOf("url")===0){b=unescape(c.split("=")[1]);break
+a}}b=void 0}_gaq.push(["_trackSocial","twitter","tweet",b])}})})})(window);
+/* ]]> */
+</script>-->
+<!--<script type="text/javascript" charset="UTF-8"
+src="http://maps.gstatic.com/cat_js/intl/en_us/mapfiles/api-3/13/4/%7Bcommon,map%7D.js"
+></script>
+<script type="text/javascript" charset="UTF-8"
+src="http://maps.gstatic.com/cat_js/intl/en_us/mapfiles/api-3/13/4/%7Butil,onion,infowindow%7D.js"
+></script>
+<script type="text/javascript" charset="UTF-8"
+src="http://maps.gstatic.com/cat_js/intl/en_us/mapfiles/api-3/13/4/%7Bcontrols%7D.js"
+></script>
+<script type="text/javascript" charset="UTF-8"
+src="http://maps.gstatic.com/cat_js/intl/en_us/mapfiles/api-3/13/4/%7Bstats%7D.js"
+></script>
+<script type="text/javascript" charset="UTF-8"
+src="http://maps.gstatic.com/cat_js/intl/en_us/mapfiles/api-3/13/4/%7Bmarker%7D.js"
+></script></head>
+--><body style="margin: 0px; padding: 0px; zoom: 1;" onload="load()">
+<div>
+	<div style="text-align:left; padding-left:20px;"
+	class="logo">&nbsp;&nbsp;&nbsp;Search for a job:</div>
+	<input style="width:20%;" class="search-input" type="text"
+	id="searchInput" value=""size="10">
+	<div style="text-align:left;margin-top:105px;padding-left:20px;"
+	class="logo">&nbsp;&nbsp;&nbsp;Enter job location:</div>
+	<input style="width:20%;margin-top:145px;" class="search-input"
+	type="text" id="locationInput" value=""size="10">
+</div>
+<div style="width:20%;visibility:hidden">
+	<select style="width:20%;visibility:hidden" class="search-input"
+	id="radiusSelect">
+	<option value="5" selected="">5mi</option>
+	<option value="25" >25mi</option>
+	<option value="100">100mi</option>
+	<option value="200">200mi</option>
+</select>
+<input width="20%" id="Search" type="button"
+onclick="searchLocations()" value="Search">
+</div>
+<div><select id="locationSelect"
+	style="width:100%;visibility:hidden"></select></div>
+	<div id="map" style="width: 100%; height: 100%"></div>
+	<script type="text/javascript">
+//load();
+//$('#map').load();
+</script>
+<script type="text/javascript"
+src="//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+<!--<script type="text/javascript">if(!NREUMQ.f){NREUMQ.f=function(){NREUMQ.push(["load",new
+Date().getTime()]);var
+e=document.createElement("script");e.type="text/javascript";e.src=(("http:"===document.location.protocol)?"http:":"https:")+"//"+"rpm-images.newrelic.com/42/eum/rum.js";document.body.appendChild(e);if(NREUMQ.a)NREUMQ.a();};NREUMQ.a=window.onload;window.onload=NREUMQ.f;};NREUMQ.push(["nrfj","beacon-4.newrelic.com","69a3bf5447","1106533","YldXMkpUXRIDAUMLWlsdYBRRGloPBgdPTEVdQg==",0,14,new
+Date().getTime(),"","","","",""]);</script>
+-->
+<!--
+<script type="text/javascript"
+src="http://rpm-images.newrelic.com/42/eum/rum.js" ></script>
+<script type="text/javascript"
+src="http://beacon-4.newrelic.com/1/69a3bf5447?a=1106533&amp;be=1139&amp;qt=0&amp;ap=14&amp;dc=68&amp;fe=820&amp;
+to=YldXMkpUXRIDAUMLWlsdYBRRGloPBgdPTEVdQg%3D%3D&amp;v=40&amp;jsonp=NREUM.setToken&amp;
+perf=%7B%22timing%22%3A%7B%22of%22%3A1371598432482%2C%20%22n%22%3A0%2C%20%22dl%22%3A317%2C%20%22di%22%3A639%2C%20%22ds%22%3A640%2C%20%22de%22%3A654%2
+C%20%22dc%22%3A1119%2C%20%22l%22%3A1119%2C%20%22le%22%3A1127%2C%20%22f%22%3A0%2C%20%22dn%22%3A0%2C%20%22dne%22%3A0%2C%20%22c%22%3A7%2C%20%22ce%22%3A7
+%2C%20%22rq%22%3A7%2C%20%22rp%22%3A304%2C%20%22rpe%22%3A308%7D%2C%20%22navigation%22%3A%7B%22ty%22%3A2%7D%7D"
+></script>
+<script type="text/javascript">if(!NREUMQ.f){NREUMQ.f=function(){NREUMQ.push(["load",new
+Date().getTime()]);var e=document.createElement("script");e.type="
+text/javascript";e.src=(("http:"===document.location.protocol)?"http:":"https:")+"//"+"rpm-images.newrelic.com/42/eum/rum.js";document.body.appendChild(e);i
+f(NREUMQ.a)NREUMQ.a();};NREUMQ.a=window.onload;window.onload=NREUMQ.f;};NREUMQ.push(["nrfj","beacon-4.newrelic.com","69a3bf5447","1106533","YldXMkpUXRIDAUMLWl
+sdYBRRGloPBgdPTEVdQg==",0,0,new Date().getTime(),"","","","",""]);</script>-->
+<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info={"beacon":"beacon-5.newrelic.com","licenseKey":"69a3bf5447","applicationID":"1106533","transactionName":"YldXMkpUXRIDAUMLWlsdYBRRGloPBgdPTEVdQg==","queueTime":0,"applicationTime":0,"ttGuid":"","agentToken":"","userAttributes":"","errorBeacon":"bam.nr-data.net","agent":"js-agent.newrelic.com\/nr-411.min.js"}</script></body></html>

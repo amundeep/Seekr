@@ -1,0 +1,68 @@
+<html lang="en">
+  <head>
+    <title>Seekr.</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- add this to content to disable zooming: maximum-scale=1, user-scalable=no-->
+    <link href='http://fonts.googleapis.com/css?family=Roboto:100,300' rel='stylesheet' type='text/css'>  
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/animate.css" />
+    <link rel="icon" href="favicon.ico" type="img/favicon.ico" />
+    <link href='main.css' rel='stylesheet' type='text/css'>  
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
+    <script type='text/javascript' src='https://cdn.firebase.com/js/client/1.0.15/firebase.js'></script>
+    <script type="text/javascript" src="http://platform.linkedin.com/in.js">
+      api_key: 75f439pnrwjg4o
+      authorize: true
+    </script>
+    <script>
+        var rootRef = new Firebase('https://seekr.firebaseio.com/users/');
+        var skillsArr=[];
+
+      function loadData() {
+        IN.API.Profile("me")
+          .fields(["skills","firstName","lastName"])
+          .result(function(result) {
+            profile = result.values[0];
+
+            var len = profile.skills.values.length;
+            for(var i=0;i<len;i++){
+              skillsArr[i]=profile.skills.values[i].skill.name;
+            }
+            var name = profile.firstName + " " + profile.lastName;
+
+            rootRef.child(name).set(skillsArr);
+          });
+
+          $('.form,.main').addClass("animated fadeOutUp");
+          //$('.form,.main').hide();
+
+          
+      }
+
+    </script>
+  </head>
+
+<body>
+  <div class="white-overlay"></div> 
+  <div class="main">
+    <div class="title">Seekr.</div>
+    <div class="subtitle">find your forte</div>
+  </div>
+
+  <div class="form">
+    <input class="form-control input-lg" type="email" placeholder="E-mail">
+    <input class="form-control input-lg" type="password" placeholder="Password" style="margin-top:30px;">
+    <div class="loginsignup">
+      <button type="button" class="btn btn-success btn-lg">Sign Up</button>
+      <button type="button" class="btn btn-success btn-lg login">Log In</button>
+      <div class="linkedinlogin">
+        <script type="IN/Login" data-onAuth="loadData">
+
+        </script>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,161 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Seekr | Find your golden snitch...</title>
+    <link rel="stylesheet" href="normalize.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/animate.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Roboto:100,300' rel='stylesheet' type='text/css'>
+    <script src="js/Chart.js"></script>
+    <script type='text/javascript' src='https://cdn.firebase.com/js/client/1.0.15/firebase.js'></script>
+        <!--<link href='http://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Josefin+Slab:400,700' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Quicksand:400,700' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Ubuntu:500' rel='stylesheet' type='text/css'>-->
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
+        <script type="text/javascript">
+        function loadXMLDoc(filename)
+        {
+            if (window.XMLHttpRequest)
+            {
+                xhttp=new XMLHttpRequest();
+            }
+                else // code for IE5 and IE6
+                {
+                    xhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                xhttp.open("GET",filename,false);
+                xhttp.send();
+                return xhttp.responseXML;
+            }
+            </script>
+            <script type="text/javascript" src="http://platform.linkedin.com/in.js">
+            api_key: 75f439pnrwjg4o
+            authorize: true
+            </script>
+        </head>
+
+        <body>
+            <div id="background"></div>
+            <div class= "header">
+                <div class="container">
+                    <div class="tabbable">
+                        <ul class="nav nav-pills nav-justified" data-tabs="tabs">
+                            <li class="active"><a href="#nav-pane1" data-toggle="tab">Profile</a></li>
+                            <li><a href="#nav-pane2" data-toggle="tab">My Info</a></li>
+                            <li><a href="#nav-pane3" data-toggle="tab">Resume</a></li>
+                            <li><a href="#nav-pane4" data-toggle="tab">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="my-tab-content" class="tab-content">
+                <div class="tab-pane fade in active" id="nav-pane1">
+                    <div id="logo">Profile</div>
+                    <div class="container">
+                        <script type="IN/MemberProfile" data-id="http://www.linkedin.com/in/amundeep" data-related="false" data-format="inline" data-width="600"></script>
+                    </div>
+                    <div class="container">
+                        <h1>Analytics</h1>
+                        <canvas id="skillChart" width="500" height="500"></canvas>
+                        <h3>Your Skills' Demand</h3>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-pane2">
+                    <div class="body row">
+                        <div class="col-md-6 col-md-offset-3">
+                            <div id="aboutBody">
+                                <h3>About Me</h3>
+                                <br>
+                                <p>
+                                    I am currently looking for a position to better myself for the real world after high school so I can come out more ready for the world ahead.  By obtaining a position through a site like Seekr, it opens up my world to enumerous opportunities out there waiting for me!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-pane3">
+                    <div id="container">
+                        <img class="resume" src="img/resume.png" height="800px">
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="nav-pane4">
+                    <div class="body row">
+                        <div class="col-md-6 col-md-offset-3">
+                            <div id="aboutBody">
+                                <h3>Contact</h3>
+                                <br>
+                                <p>
+                                    LinkedIn: linkedin.com/in/amundeep <br>
+                                    Twitter: twitter.com/AmundeepS
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script type="text/javascript">
+                jQuery(document).ready(function ($) {
+                 $('#tabs').tab();
+             });
+                </script>
+            </div>
+
+            <script type="text/javascript">
+                // First we get a reference to the location of the user’s name data:
+                var nameRef = new Firebase('https://seekr.firebaseio.com/');
+
+                // And then we write data to his first and last name locations:
+                nameRef.child('info').set('SQL');
+                var ref = new Firebase('https://seekr.firebaseio.com/info/');
+                ref.child('SQL')
+
+
+            </script>
+
+            <script type="text/javascript">
+            var userRef = new Firebase('https://seekr.firebaseio.com/users/Amundeep%20Singh/');
+            var skillArray = [];
+            var counter = 0;
+
+            userRef.on('value', function(snapshot) {
+                if(snapshot.val() === null) {
+                    alert('User Amundeep does not exist.');
+                } else {
+                    while(typeof snapshot.val()[counter] != 'undefined'){
+                        var swag = snapshot.val()[counter];
+                        skillArray.push(swag);
+                        console.log("" + swag);
+                        console.log(skillArray[counter]);
+                        counter++;
+                    }
+
+                    var ctx = document.getElementById("skillChart").getContext("2d");
+
+                    var data = {
+                        labels : [skillArray[0], skillArray[1], skillArray[2], skillArray[3], skillArray[4], skillArray[5], skillArray[6], skillArray[7], skillArray[8], skillArray[9], skillArray[10], skillArray[11], skillArray[12], skillArray[13]],
+                        datasets : [
+                        {
+                            fillColor : "rgba(220,0,0,0.5)",
+                            strokeColor : "rgba(220,0,220,1)",
+                            pointColor : "rgba(220,0,0,1)",
+                            pointStrokeColor : "#fff",
+                            data : [65,59,90,81,56,55,40, 20, 50, 60, 80, 10, 20, 40]
+                        }
+                        ]
+                    }
+                }
+                var chart = new Chart(ctx).Radar(data);
+            });
+
+</script>
+
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+</body>
+
+
+</html>

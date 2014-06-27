@@ -1,0 +1,297 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Seekr | Find your golden snitch...</title>
+    <link rel="stylesheet" href="normalize.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/animate.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Roboto:100,300' rel='stylesheet' type='text/css'>
+    <script src="js/Chart.js"></script>
+    <script type='text/javascript' src='https://cdn.firebase.com/js/client/1.0.15/firebase.js'></script>
+        <!--<link href='http://fonts.googleapis.com/css?family=Bree+Serif' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Josefin+Slab:400,700' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Quicksand:400,700' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Ubuntu:500' rel='stylesheet' type='text/css'>-->
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
+        <script type="text/javascript">
+            function loadXMLDoc(filename)
+            {
+                if (window.XMLHttpRequest)
+                {
+                    xhttp=new XMLHttpRequest();
+                }
+                else // code for IE5 and IE6
+                {
+                    xhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                xhttp.open("GET",filename,false);
+                xhttp.send();
+                return xhttp.responseXML;
+            }
+        </script>
+        <script type="text/javascript" src="http://platform.linkedin.com/in.js">
+            api_key: 75f439pnrwjg4o
+            authorize: true
+        </script>
+    </head>
+
+    <body>
+        <div id="background"></div>
+        <div class= "header" style="background-color:rgba(255,255,255,0.8);border-bottom:1px solid lightgray">
+            <div class="container">
+                <div class="tabbable">
+                    <ul class="nav nav-pills nav-justified" data-tabs="tabs">
+                        <li class="active"><a href="#" data-toggle="tab">Profile</a></li>
+                        <li><a href="/map.html" data-toggle="tab">Job Search</a></li>
+                        <li><a href="#" data-toggle="tab">My Jobs</a></li>
+                        <li><a href="#" data-toggle="tab">Resume</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="my-tab-content" class="tab-content">
+            <div class="tab-pane fade in active" id="nav-pane1">
+                <div class="container" style="position:absolute;right:-400px;top:75px;">
+                    <script type="IN/MemberProfile" data-id="http://www.linkedin.com/in/amundeep" data-related="false" data-format="inline" data-width="300"></script>
+                </div>
+                <div class="container" style="margin-top:75px;">
+                    <h1>Analytics</h1>
+                    <canvas id="skillChart" width="700" height="700"></canvas>
+                    <h3>Your Skills' Demand</h3>
+                    <canvas id="lineChart" width='800' height='500'></canvas>
+                    <h3>Skills Trending</h3>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="nav-pane2">
+                <div class="body row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <div id="aboutBody">
+                            <h3>About Me</h3>
+                            <br>
+                            <p>
+                                I am currently looking for a position to better myself for the real world after high school so I can come out more ready for the world ahead.  By obtaining a position through a site like Seekr, it opens up my world to enumerous opportunities out there waiting for me!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="nav-pane3">
+                <div id="container">
+                    <img class="resume" src="img/resume.png" height="800px">
+                </div>
+            </div>
+            <div class="tab-pane fade" id="nav-pane4">
+                <div class="body row">
+                    <div class="col-md-6 col-md-offset-3">
+                        <div id="aboutBody">
+                            <h3>Contact</h3>
+                            <br>
+                            <p>
+                                LinkedIn: linkedin.com/in/amundeep <br>
+                                Twitter: twitter.com/AmundeepS
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                jQuery(document).ready(function ($) {
+                 $('#tabs').tab();
+             });
+            </script>
+        </div>
+
+        <script type="text/javascript">
+
+            xmlDoc=loadXMLDoc("query_result.xml");
+
+            var x=xmlDoc.getElementsByTagName('field');
+            
+            for (i=0;i<10;i++)
+            {
+                console.log(x[i].getAttribute('name'));
+
+                // console.log(x[i].getAttribute('skill'));
+                // console.log(x[i].getAttribute('count(jobs.id)'));
+            }
+
+        </script>
+
+        <script type="text/javascript">
+            var userRef = new Firebase('https://seekr.firebaseio.com/users/Amundeep%20Singh/');
+            var skillArray = [];
+            var counter = 0;
+
+            userRef.on('value', function(snapshot) {
+                if(snapshot.val() === null) {
+                    alert('User Amundeep does not exist.');
+                } else {
+                    while(typeof snapshot.val()[counter] != 'undefined'){
+                        var swag = snapshot.val()[counter];
+                        skillArray.push(swag);
+                        console.log("" + swag);
+                        console.log(skillArray[counter]);
+                        counter++;
+                    }
+
+                    var ctx = document.getElementById("skillChart").getContext("2d");
+
+                    var data = {
+                        labels : [skillArray[0], skillArray[1], skillArray[2], skillArray[3], skillArray[4], skillArray[5], skillArray[6], skillArray[7], skillArray[8], skillArray[9], skillArray[10], skillArray[11], skillArray[12], skillArray[13]],
+                        datasets : [
+                        {
+                            fillColor : "rgba(220,0,0,0.5)",
+                            strokeColor : "rgba(220,0,220,1)",
+                            pointColor : "rgba(220,0,0,1)",
+                            pointStrokeColor : "#fff",
+                            data : [65,59,90,81,56,55,40, 20, 50, 60, 80, 10, 20, 40]
+                        }
+                        ]
+                    }
+                }
+                var chart = new Chart(ctx).Radar(data);
+            });
+            var ctx = document.getElementById("lineChart").getContext("2d");
+            var data = {
+                labels : ["June 9","June 10","June 11","June 12","June 13","June 14","June 15"],
+                datasets : [
+                {
+                    fillColor : "rgba(214,69,65,0.167)",
+                    strokeColor : "rgba(214,69,65,1)",
+                    pointColor : "rgba(214,69,65,1)",
+                    pointStrokeColor : "#fff",
+                    data : [71,74,72,75,79,77,75]
+                },
+                {
+                    fillColor : "rgba(63,195,128,0.167)",
+                    strokeColor : "rgba(63,195,128,1)",
+                    pointColor : "rgba(63,195,128,1)",
+                    pointStrokeColor : "#fff",
+                    data : [57,55,61,63,60,65,59]
+                },
+                {
+                    fillColor : "rgba(154,18,179,0.167)",
+                    strokeColor : "rgba(154,18,179,1)",
+                    pointColor : "rgba(154,18,179,1)",
+                    pointStrokeColor : "#fff",
+                    data : [40,43,44,45,42,50,46]
+                },
+                {
+                    fillColor : "rgba(52,152,219,0.167)",
+                    strokeColor : "rgba(52,152,219,1)",
+                    pointColor : "rgba(52,152,219,1)",
+                    pointStrokeColor : "#fff",
+                    data : [34,32,33,36,31,32,36]
+                },
+                {
+                    fillColor : "rgba(242,121,53,0.167)",
+                    strokeColor : "rgba(242,121,53,1)",
+                    pointColor : "rgba(242,121,53,1)",
+                    pointStrokeColor : "#fff",
+                    data : [12,12,13,12,11,7,9]
+                },
+                {
+                    fillColor : "rgba(34,49,63,0.167)",
+                    strokeColor : "rgba(34,49,63,1)",
+                    pointColor : "rgba(34,49,63,1)",
+                    pointStrokeColor : "#fff",
+                    data : [5,6,1,7,8,10,4]
+                }
+                ]
+            }
+            var defaults = {
+
+                //Boolean - If we show the scale above the chart data           
+                scaleOverlay : false,
+                
+                //Boolean - If we want to override with a hard coded scale
+                scaleOverride : true,
+                
+                //** Required if scaleOverride is true **
+                //Number - The number of steps in a hard coded scale
+                scaleSteps : 20,
+                //Number - The value jump in the hard coded scale
+                scaleStepWidth : 5,
+                //Number - The scale starting value
+                scaleStartValue : 0,
+
+                //String - Colour of the scale line 
+                scaleLineColor : "rgba(0,0,0,.1)",
+                
+                //Number - Pixel width of the scale line    
+                scaleLineWidth : 1,
+
+                //Boolean - Whether to show labels on the scale 
+                scaleShowLabels : true,
+                
+                //Interpolated JS string - can access value
+                scaleLabel : "<%=value%>",
+                
+                //String - Scale label font declaration for the scale label
+                scaleFontFamily : "'Arial'",
+                
+                //Number - Scale label font size in pixels  
+                scaleFontSize : 12,
+                
+                //String - Scale label font weight style    
+                scaleFontStyle : "normal",
+                
+                //String - Scale label font colour  
+                scaleFontColor : "#666",    
+                
+                ///Boolean - Whether grid lines are shown across the chart
+                scaleShowGridLines : true,
+                
+                //String - Colour of the grid lines
+                scaleGridLineColor : "rgba(0,0,0,.05)",
+                
+                //Number - Width of the grid lines
+                scaleGridLineWidth : 1, 
+                
+                //Boolean - Whether the line is curved between points
+                bezierCurve : true,
+                
+                //Boolean - Whether to show a dot for each point
+                pointDot : true,
+                
+                //Number - Radius of each point dot in pixels
+                pointDotRadius : 3,
+                
+                //Number - Pixel width of point dot stroke
+                pointDotStrokeWidth : 1,
+                
+                //Boolean - Whether to show a stroke for datasets
+                datasetStroke : true,
+                
+                //Number - Pixel width of dataset stroke
+                datasetStrokeWidth : 2,
+                
+                //Boolean - Whether to fill the dataset with a colour
+                datasetFill : true,
+                
+                //Boolean - Whether to animate the chart
+                animation : true,
+
+                //Number - Number of animation steps
+                animationSteps : 60,
+                
+                //String - Animation easing effect
+                animationEasing : "easeOutQuart",
+
+                //Function - Fires when the animation is complete
+                onAnimationComplete : null
+                
+            }
+        var chart2 = new Chart(ctx).Line(data, defaults);
+        </script>
+
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+</body>
+
+
+</html>

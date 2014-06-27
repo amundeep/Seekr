@@ -1,0 +1,19 @@
+.map{
+	position: absolute;
+	width: 40%;
+	height: 100%;
+	background-color: white;
+	z-index: 10000;
+}
+
+body{
+	background-color: rgb(25, 181, 254);
+}
+
+.map-options{
+	position: absolute;
+	width: 60%;
+	height: 100%;
+	right: 0;
+	z-index: 1000;
+}
